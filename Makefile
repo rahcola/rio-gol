@@ -1,7 +1,7 @@
 SRC=src/gol
 CP=classes
 JAVAC=javac -Xlint:unchecked -d ${CP}
-JAVA=java -cp ${CP}
+JAVA=AWT_TOOLKIT=MToolkit java -cp ${CP}
 
 compile:
 	${JAVAC} ${SRC}/*.java
