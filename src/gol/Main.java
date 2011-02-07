@@ -16,18 +16,18 @@ public class Main {
 
 	private static void setGUI() {
 		JFrame frame = new JFrame();
-		frame.add(testGame());
+		frame.add(new GUI(testGame(20)));
 		frame.pack();
 		frame.setVisible(true);
 	}
 
-	private static GameOfLife testGame() {
-		Cell[][] cells = new Cell[20][20];
+	private static GameOfLife testGame(int size) {
+		Cell[][] cells = new Cell[size][size];
 
 		int y;
 		int x;
-		for (y = 0; y < 20; y++) {
-			for (x = 0; x < 20; x++) {
+		for (y = 0; y < cells.length; y++) {
+			for (x = 0; x < cells.length; x++) {
 				cells[y][x] = new Cell(false);
 			}
 		}
@@ -37,17 +37,13 @@ public class Main {
 		cells[12][9] = new Cell(true);
 		cells[12][10] = new Cell(true);
 		cells[12][11] = new Cell(true);
-		for (y = 0; y < 20; y++) {
-			for (x = 0; x < 20; x++) {
+
+		for (y = 0; y < cells.length; y++) {
+			for (x = 0; x < cells.length; x++) {
 				setNeighbours(cells, cells[y][x], x, y);
 			}
 		}
 		GameOfLife game = new GameOfLife(cells);
-		try {
-			game.step();
-		} catch (Exception e) {
-			return game;
-		}
 		return game;
 	}
 

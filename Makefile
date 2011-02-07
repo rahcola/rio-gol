@@ -1,6 +1,6 @@
 SRC=src/gol
 CP=classes
-JAVAC=javac -d ${CP}
+JAVAC=javac -Xlint:unchecked -d ${CP}
 JAVA=java -cp ${CP}
 
 compile:

@@ -1,63 +1,68 @@
 package gol;
 
-import javax.swing.JPanel;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Color;
-
 import java.util.concurrent.Semaphore;
+import java.util.ArrayList;
 
-public class GameOfLife extends JPanel {
+public class GameOfLife {
 
-	final int MARGIN = 10;
-
-	private Semaphore signal_cells;
-	private Semaphore signal_game;
+	private Semaphore start_calc;
+	private Semaphore calc_ready;
+	private Semaphore start_set;
+	private Semaphore set_ready;
 	private Cell[][] cells;
+	private ArrayList<CellGroup> groups;
 
 	public GameOfLife(Cell[][] cells) {
 		this.cells = cells;
-		this.signal_cells = new Semaphore(0);
-		this.signal_game = new Semaphore(0);
+		this.start_calc = new Semaphore(0);
+		this.calc_ready = new Semaphore(0);
+		this.start_set = new Semaphore(0);
+		this.set_ready = new Semaphore(0);
+		this.groups = new ArrayList<CellGroup>();
+
+		for (ArrayList<Cell> cell_list : splitForProcessors()) {
+			this.groups.add(new CellGroup(cell_list,
+										  start_calc,
+										  calc_ready,
+										  start_set,
+										  set_ready));
+		}
+
+		for (CellGroup group : this.groups) {
+			new Thread(group).start();
+		}
+	}
+
+	private ArrayList<Cell>[] splitForProcessors() {
+		int nProcessors = Runtime.getRuntime().availableProcessors();
+		ArrayList<Cell>[] cell_lists = new ArrayList[nProcessors];
+
+		for (int i = 0; i < cell_lists.length; i++) {
+			cell_lists[i] = new ArrayList<Cell>();
+		}
+
+		int i = 0;
 		for (Cell[] row : this.cells) {
 			for (Cell cell : row) {
-				cell.setSyncs(this.signal_cells, this.signal_game);
+				cell_lists[i % nProcessors].add(cell);
 			}
 		}
-		for (Cell[] row: this.cells) {
-			for (Cell cell : row) {
-				new Thread(cell).start();
-			}
-		}
+		return cell_lists;
 	}
 
 	public void step() throws InterruptedException {
-		this.repaint();
+		this.start_calc.release(groups.size());
+		this.calc_ready.acquire(groups.size());
+		this.start_set.release(groups.size());
+		this.set_ready.acquire(groups.size());
 	}
 
-	public Dimension getPreferedSize() {
-		return new Dimension((10 * this.cells.length) + (2 * MARGIN),
-							 (10 * this.cells[0].length) + (2 * MARGIN));
+	public int getSize() {
+		return cells.length;
 	}
 
-	public void paintComponent(Graphics g) {
-		super.paintComponent(g);
-
-		int y;
-		int x;
-		for (y = 0; y < this.cells.length; y++) {
-			for (x = 0; x < this.cells[y].length; x++) {
-				if (this.cells[y][x].alive) {
-					g.setColor(Color.RED);
-				} else {
-					g.setColor(Color.BLUE);
-				}
-				g.fillRect((MARGIN + 10*x),
-						   (MARGIN + 10*y),
-						   10,
-						   10);
-				g.setColor(Color.BLACK);
-			}
-		}
+	public Cell cellAt(int x, int y) {
+		return cells[y][x];
 	}
+
 }
