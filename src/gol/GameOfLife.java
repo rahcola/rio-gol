@@ -20,41 +20,35 @@ public class GameOfLife {
 		this.set_ready = new Semaphore(0);
 		this.groups = new ArrayList<CellGroup>();
 
-		for (ArrayList<Cell> cell_list : splitForProcessors()) {
-			this.groups.add(new CellGroup(cell_list,
-										  start_calc,
-										  calc_ready,
-										  start_set,
-										  set_ready));
-		}
-
+		splitCellsForProcessors();
 		for (CellGroup group : this.groups) {
 			new Thread(group).start();
 		}
 	}
 
-	private ArrayList<Cell>[] splitForProcessors() {
+	private void splitCellsForProcessors() {
 		int nProcessors = Runtime.getRuntime().availableProcessors();
-		ArrayList<Cell>[] cell_lists = new ArrayList[nProcessors];
-
-		for (int i = 0; i < cell_lists.length; i++) {
-			cell_lists[i] = new ArrayList<Cell>();
+		for (int i = 0; i < nProcessors; i++) {
+			this.groups.add(new CellGroup(start_calc,
+										  calc_ready,
+										  start_set,
+										  set_ready));
 		}
 
 		int i = 0;
 		for (Cell[] row : this.cells) {
 			for (Cell cell : row) {
-				cell_lists[i % nProcessors].add(cell);
+				this.groups.get(i % nProcessors).addCell(cell);
+				i += 1;
 			}
 		}
-		return cell_lists;
 	}
 
-	public void step() throws InterruptedException {
+	public void step() {
 		this.start_calc.release(groups.size());
-		this.calc_ready.acquire(groups.size());
+		this.calc_ready.acquireUninterruptibly(groups.size());
 		this.start_set.release(groups.size());
-		this.set_ready.acquire(groups.size());
+		this.set_ready.acquireUninterruptibly(groups.size());
 	}
 
 	public int getSize() {
@@ -63,6 +57,21 @@ public class GameOfLife {
 
 	public Cell cellAt(int x, int y) {
 		return cells[y][x];
+	}
+
+	public boolean equals(GameOfLife other) {
+		if (this.getSize() == other.getSize()) {
+			for (int y = 0; y < cells.length; y++) {
+				for (int x = 0; x < cells.length; x++) {
+					if (!this.cells[y][x].equals(other.cells[y][x])) {
+						return false;
+					}
+				}
+			}
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 }

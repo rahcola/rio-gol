@@ -11,35 +11,39 @@ public class CellGroup implements Runnable {
 	private Semaphore start_set;
 	private Semaphore set_ready;
 
-	public CellGroup(ArrayList<Cell> cells,
-					 Semaphore start_calc,
+	public CellGroup(Semaphore start_calc,
 					 Semaphore calc_ready,
 					 Semaphore start_set,
 					 Semaphore set_ready) {
-		this.cells = cells;
+		this.cells = new ArrayList<Cell>();
 		this.start_calc = start_calc;
 		this.calc_ready = calc_ready;
 		this.start_set = start_set;
 		this.set_ready = set_ready;
 	}
 
+	public void addCell(Cell cell) {
+		this.cells.add(cell);
+	}
+
 	public void run() {
 		while (true) {
-			try {
-				this.start_calc.acquireUninterruptibly();
-				for (Cell cell : this.cells) {
+			this.start_calc.acquireUninterruptibly();
+			for (Cell cell : this.cells) {
+				try {
 					cell.calculateNewState();
+				} catch (Exception e) {
+					System.out.println(e);
+					return;
 				}
-				this.calc_ready.release();
-
-				this.start_set.acquireUninterruptibly();
-				for (Cell cell : this.cells) {
-					cell.setNewState();
-				}
-				this.set_ready.release();
-			} catch (Exception e) {
-				return;
 			}
+			this.calc_ready.release();
+
+			this.start_set.acquireUninterruptibly();
+			for (Cell cell : this.cells) {
+				cell.setNewState();
+			}
+			this.set_ready.release();
 		}
 	}
 

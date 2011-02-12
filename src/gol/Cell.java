@@ -19,6 +19,7 @@ public class Cell {
 		if (this.neighbours == null) {
 			throw new Exception("cell not initialized");
 		}
+
 		int aliveNeighbours = 0;
 		for (Cell n : this.neighbours) {
 			if (n.alive)
@@ -35,5 +36,9 @@ public class Cell {
 
 	public void setNewState() {
 		this.alive = this.newAlive;
+	}
+
+	public boolean equals(Cell other) {
+		return this.alive == other.alive;
 	}
 }
