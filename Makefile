@@ -1,10 +1,10 @@
-SRC=src/gol
+SRC=src
 CP=classes
-JAVAC=javac -Xlint:unchecked -d ${CP}
+JAVAC=javac -Xlint:unchecked -d ${CP} -sourcepath ${SRC}
 JAVA=AWT_TOOLKIT=MToolkit java -cp ${CP}
 
 compile:
-	${JAVAC} ${SRC}/*.java ${SRC}/oscillators/*.java
+	${JAVAC} ${SRC}/gol/Main.java
 
 main: compile
 	${JAVA} gol/Main
