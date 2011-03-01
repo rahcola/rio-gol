@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class CellGroup implements Runnable {
 
-	private ArrayList<Cell> cells;
+	public ArrayList<Cell> cells;
 	private Semaphore start_calc;
 	private Semaphore calc_ready;
 	private Semaphore start_set;
@@ -20,10 +20,6 @@ public class CellGroup implements Runnable {
 		this.calc_ready = calc_ready;
 		this.start_set = start_set;
 		this.set_ready = set_ready;
-	}
-
-	public void addCell(Cell cell) {
-		this.cells.add(cell);
 	}
 
 	public void run() {

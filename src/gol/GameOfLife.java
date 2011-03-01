@@ -38,7 +38,7 @@ public class GameOfLife {
 		int i = 0;
 		for (Cell[] row : this.cells) {
 			for (Cell cell : row) {
-				this.groups.get(i % nProcessors).addCell(cell);
+				this.groups.get(i % nProcessors).cells.add(cell);
 				i += 1;
 			}
 		}
