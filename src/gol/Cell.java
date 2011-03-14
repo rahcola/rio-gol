@@ -2,12 +2,13 @@ package gol;
 
 public class Cell {
 
-	public volatile boolean alive;
+	private volatile boolean alive;
 	private boolean newAlive;
 	private Cell[] neighbours;
 
 	public Cell(boolean alive) {
 		this.alive = alive;
+		this.newAlive = alive;
 		this.neighbours = null;
 	}
 
@@ -15,23 +16,27 @@ public class Cell {
 		this.neighbours = neighbours;
 	}
 
-	public void calculateNewState() throws Exception {
+	public void calculateNewState() {
 		if (this.neighbours == null) {
-			throw new Exception("cell not initialized");
+			return;
 		}
 
 		int aliveNeighbours = 0;
 		for (Cell n : this.neighbours) {
-			if (n.alive)
+			if (n.getAlive())
 				aliveNeighbours += 1;
 		}
 
-		if (alive && (aliveNeighbours == 2 || aliveNeighbours ==3))
+		if (this.alive && (aliveNeighbours == 2 || aliveNeighbours ==3))
 			this.newAlive = true;
 		else if (!alive && aliveNeighbours == 3)
 			this.newAlive = true;
 		else
 			this.newAlive = false;
+	}
+
+	public boolean getAlive() {
+		return this.alive;
 	}
 
 	public void setNewState() {
