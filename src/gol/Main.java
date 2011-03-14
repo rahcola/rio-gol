@@ -7,7 +7,7 @@ public class Main {
 	public static void main(String[] args) {
 		GameOfLife game = new Minimal();
 		long start = System.currentTimeMillis();
-		for (int i = 0; i < 50; i++) {
+		for (int i = 0; i < 500; i++) {
 			game.step();
 		}
 		long stop = System.currentTimeMillis();
