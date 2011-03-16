@@ -23,7 +23,7 @@ public class Cell {
 
 		int aliveNeighbours = 0;
 		for (Cell n : this.neighbours) {
-			if (n.getAlive())
+			if (n.alive())
 				aliveNeighbours += 1;
 		}
 
@@ -35,7 +35,7 @@ public class Cell {
 			this.newAlive = false;
 	}
 
-	public boolean getAlive() {
+	public boolean alive() {
 		return this.alive;
 	}
 
@@ -43,7 +43,4 @@ public class Cell {
 		this.alive = this.newAlive;
 	}
 
-	public boolean equals(Cell other) {
-		return this.alive == other.alive;
-	}
 }

@@ -32,8 +32,8 @@ public class GUI extends JPanel implements ActionListener {
 	}
 
 	public Dimension getPreferedSize() {
-		return new Dimension((CELL_SIZE * this.gol.getSize()) + (2 * MARGIN),
-							 (CELL_SIZE * this.gol.getSize()) + (2 * MARGIN));
+		return new Dimension((CELL_SIZE * this.gol.getWidth()) + (2 * MARGIN),
+							 (CELL_SIZE * this.gol.getHeight()) + (2 * MARGIN));
 	}
 
 	public void paintComponent(Graphics g) {
@@ -41,9 +41,9 @@ public class GUI extends JPanel implements ActionListener {
 
 		int y;
 		int x;
-		for (y = 0; y < this.gol.getSize(); y++) {
-			for (x = 0; x < this.gol.getSize(); x++) {
-				if (this.gol.cellAt(x, y).alive) {
+		for (y = 0; y < this.gol.getHeight(); y++) {
+			for (x = 0; x < this.gol.getWidth(); x++) {
+				if (this.gol.cellAt(x, y).alive()) {
 					g.setColor(Color.GRAY);
 				} else {
 					g.setColor(Color.BLACK);
