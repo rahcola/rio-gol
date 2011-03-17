@@ -3,10 +3,11 @@ package gol;
 public class Minimal extends GameOfLife {
 
 	public Minimal() {
-		super(createMinimal());
+		super(create());
 	}
 
-	private static boolean[][] createMinimal() {
+
+	private static boolean[][] create() {
 		boolean[][] cells = new boolean[200][200];
 
 		for (int y = 0; y < cells.length; y++) {
@@ -25,8 +26,6 @@ public class Minimal extends GameOfLife {
 		cells[105][103] = true;
 		cells[106][101] = true;
 		cells[106][103] = true;
-
 		return cells;
 	}
-
 }
