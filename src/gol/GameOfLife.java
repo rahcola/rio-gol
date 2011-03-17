@@ -1,11 +1,85 @@
 package gol;
 
-import java.util.concurrent.Semaphore;
-import java.util.ArrayList;
-import java.util.LinkedList;
-
 public class GameOfLife {
 
+	private int width;
+	private int height;
+	private boolean[] currentGen;
+	private boolean[] nextGen;
+
+	public GameOfLife(boolean[][] cells) {
+		this.width = cells[0].length;
+		this.height = cells.length;
+		this.currentGen = new boolean[this.width * this.height];
+		this.nextGen = new boolean[this.width * this.height];
+		for (int y = 0; y < this.height; ++y) {
+			for (int x = 0; x < this.width; ++x) {
+				currentGen[(y * 10) + x] = cells[y][x];
+			}
+		}
+	}
+
+	public boolean cellAt(int x, int y) {
+		try {
+			return currentGen[(y * 10) + x];
+		} catch (IndexOutOfBoundsException e) {
+			return false;
+		}
+	}
+
+	public int getWidth() {
+		return this.width;
+	}
+
+	public int getHeight() {
+		return this.height;
+	}
+
+	public void step() {
+		for (int y = 0; y < this.height; ++y) {
+			for (int x = 0; x < this.width; ++x) {
+				nextGen[(y * 10) + x] = newState(x, y);
+			}
+		}
+		swapBuffers();
+	}
+
+	private void swapBuffers() {
+		boolean[] tmp = currentGen;
+		currentGen = nextGen;
+		nextGen = tmp;
+	}
+
+	private boolean newState(int x, int y) {
+		boolean alive = cellAt(x, y);
+
+		int liveNeighbours = 0;
+		for (boolean n : neighbours(x, y)) {
+			if (n)
+				liveNeighbours += 1;
+		}
+		if (alive && (liveNeighbours == 2 || liveNeighbours ==3))
+			return true;
+		else if (!alive && liveNeighbours == 3)
+			return true;
+		else
+			return false;
+	}
+
+	private boolean[] neighbours(int x, int y) {
+		boolean[] neighbours = {
+			cellAt(x-1, y-1),
+			cellAt(x, y-1),
+			cellAt(x+1, y-1),
+			cellAt(x-1, y),
+			cellAt(x+1, y),
+			cellAt(x-1, y+1),
+			cellAt(x, y+1),
+			cellAt(x+1, y+1)};
+		return neighbours;
+	}
+
+	/*
 	private Semaphore start_calc;
 	private Semaphore calc_ready;
 	private Semaphore start_set;
@@ -85,5 +159,5 @@ public class GameOfLife {
 	public Cell cellAt(int x, int y) {
 		return cells[y][x];
 	}
-
+	*/
 }
