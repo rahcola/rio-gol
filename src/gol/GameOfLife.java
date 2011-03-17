@@ -34,7 +34,7 @@ public class GameOfLife {
 	private void splitCellsForProcessors() {
 		int nProcessors = Runtime.getRuntime().availableProcessors();
 		if (nProcessors > getWidth() * getHeight()) {
-			//no point having more threads than cores
+			//no point having more threads than cells
 			nProcessors = getWidth() * getHeight();
 		}
 
