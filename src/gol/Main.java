@@ -8,13 +8,12 @@ public class Main {
 
 		GameOfLife game = new Minimal();
 		long start = System.currentTimeMillis();
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 1000; i++) {
 			game.step();
 		}
 		long stop = System.currentTimeMillis();
 		System.out.println(stop - start);
-		game.stop();
-
+		System.exit(0);
 		/*
 		SwingUtilities.invokeLater(new Runnable() {
 				public void run() {

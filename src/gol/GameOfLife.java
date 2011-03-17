@@ -65,6 +65,7 @@ public class GameOfLife {
 		for (CellGroup group : this.groups) {
 			group.stop();
 		}
+		step();
 		for (Thread thread : this.threads) {
 			try {
 				thread.join();
