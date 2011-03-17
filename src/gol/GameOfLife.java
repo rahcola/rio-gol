@@ -14,14 +14,14 @@ public class GameOfLife {
 		this.nextGen = new boolean[this.width * this.height];
 		for (int y = 0; y < this.height; ++y) {
 			for (int x = 0; x < this.width; ++x) {
-				currentGen[(y * 10) + x] = cells[y][x];
+				currentGen[(y * this.width) + x] = cells[y][x];
 			}
 		}
 	}
 
 	public boolean cellAt(int x, int y) {
 		try {
-			return currentGen[(y * 10) + x];
+			return currentGen[(y * this.width) + x];
 		} catch (IndexOutOfBoundsException e) {
 			return false;
 		}
@@ -36,20 +36,10 @@ public class GameOfLife {
 	}
 
 	public void step() {
-		Thread thread = new Thread(new Runnable() {
-				public void run() {
-					for (int y = 0; y < height; ++y) {
-						for (int x = 0; x < width; ++x) {
-							nextGen[(y * 10) + x] = newState(x, y);
-						}
-					}
-				}
-			});
-		thread.start();
-		try {
-			thread.join();
-		} catch (InterruptedException e) {
-			System.out.println("thread interrupted");
+		for (int y = 0; y < height; ++y) {
+			for (int x = 0; x < width; ++x) {
+				nextGen[(y * width) + x] = newState(x, y);
+			}
 		}
 		swapBuffers();
 	}
