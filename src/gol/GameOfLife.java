@@ -7,7 +7,7 @@ public class GameOfLife {
 	private int width;
 	private int height;
 	private Cell[] currentGen;
-	LinkedList<Runnable> updaters;
+	private LinkedList<Runnable> updaters;
 
 	public GameOfLife(boolean[][] cells) {
 		this.width = cells[0].length;
