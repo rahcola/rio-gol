@@ -36,10 +36,20 @@ public class GameOfLife {
 	}
 
 	public void step() {
-		for (int y = 0; y < this.height; ++y) {
-			for (int x = 0; x < this.width; ++x) {
-				nextGen[(y * 10) + x] = newState(x, y);
-			}
+		Thread thread = new Thread(new Runnable() {
+				public void run() {
+					for (int y = 0; y < height; ++y) {
+						for (int x = 0; x < width; ++x) {
+							nextGen[(y * 10) + x] = newState(x, y);
+						}
+					}
+				}
+			});
+		thread.start();
+		try {
+			thread.join();
+		} catch (InterruptedException e) {
+			System.out.println("thread interrupted");
 		}
 		swapBuffers();
 	}
