@@ -12,6 +12,7 @@ public class Main {
 		}
 		long stop = System.currentTimeMillis();
 		System.out.println(stop - start);
+		game.shutdown();
 		/*
 		SwingUtilities.invokeLater(new Runnable() {
 				public void run() {

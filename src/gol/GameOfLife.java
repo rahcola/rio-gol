@@ -70,6 +70,10 @@ public class GameOfLife {
 		}
 	}
 
+	public void shutdown() {
+		this.pool.shutdown();
+	}
+
 	private void splitCellsToUpdaters() {
 		int nCores = Runtime.getRuntime().availableProcessors();
 		// no point having more threads than cells
