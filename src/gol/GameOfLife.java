@@ -1,90 +1,109 @@
 package gol;
 
-import java.util.concurrent.Semaphore;
-import java.util.ArrayList;
 import java.util.LinkedList;
 
 public class GameOfLife {
 
-	private Semaphore start_calc;
-	private Semaphore calc_ready;
-	private Semaphore start_set;
-	private Semaphore set_ready;
-	private Cell[][] cells;
-	private ArrayList<CellGroup> groups;
-	private LinkedList<Thread> threads;
+	private int width;
+	private int height;
+	private Cell[] currentGen;
+	LinkedList<Runnable> updaters;
 
-	public GameOfLife(Cell[][] cells) {
-		this.cells = cells;
-		this.start_calc = new Semaphore(0);
-		this.calc_ready = new Semaphore(0);
-		this.start_set = new Semaphore(0);
-		this.set_ready = new Semaphore(0);
-		this.groups = new ArrayList<CellGroup>();
-		this.threads = new LinkedList<Thread>();
+	public GameOfLife(boolean[][] cells) {
+		this.width = cells[0].length;
+		this.height = cells.length;
+		this.currentGen = new Cell[this.width * this.height];
+		this.updaters = new LinkedList<Runnable>();
 
-		splitCellsForProcessors();
-		for (CellGroup group : this.groups) {
-			Thread thread = new Thread(group);
-			this.threads.add(thread);
-			thread.start();
-		}
-	}
-
-	private void splitCellsForProcessors() {
-		int nProcessors = Runtime.getRuntime().availableProcessors();
-		if (nProcessors > getWidth() * getHeight()) {
-			//no point having more threads than cells
-			nProcessors = getWidth() * getHeight();
-		}
-
-		for (int i = 0; i < nProcessors; i++) {
-			this.groups.add(new CellGroup(start_calc,
-										  calc_ready,
-										  start_set,
-										  set_ready));
-		}
-
-		int group = 0;
-		for (Cell[] row : this.cells) {
-			for (Cell cell : row) {
-				this.groups.get(group % nProcessors).addCell(cell);
-				group += 1;
+		for (int y = 0; y < this.height; ++y) {
+			for (int x = 0; x < this.width; ++x) {
+				currentGen[(y * this.width) + x] = new Cell(cells[y][x]);
 			}
 		}
-	}
-
-	public void step() {
-		this.start_calc.release(groups.size());
-		this.calc_ready.acquireUninterruptibly(groups.size());
-		this.start_set.release(groups.size());
-		this.set_ready.acquireUninterruptibly(groups.size());
-	}
-
-	public void stop() {
-		for (CellGroup group : this.groups) {
-			group.stop();
-		}
-		step();
-		for (Thread thread : this.threads) {
-			try {
-				thread.join();
-			} catch (InterruptedException e) {
-				System.out.println("thread was interrupted");
+		for (int y = 0; y < this.height; ++y) {
+			for (int x = 0; x < this.width; ++x) {
+				currentGen[(y * this.width) + x].setNeighbours(neighbours(x, y));
 			}
+		}
+		splitCellsToUpdaters();
+	}
+
+	public Cell cellAt(int x, int y) {
+		try {
+			return currentGen[(y * this.width) + x];
+		} catch (IndexOutOfBoundsException e) {
+			return new Cell(false);
 		}
 	}
 
 	public int getWidth() {
-		return cells[0].length;
+		return this.width;
 	}
 
 	public int getHeight() {
-		return cells.length;
+		return this.height;
 	}
 
-	public Cell cellAt(int x, int y) {
-		return cells[y][x];
+	public void step() {
+		LinkedList<Thread> threads = new LinkedList<Thread>();
+
+		for (Runnable updater : this.updaters) {
+			Thread thread = new Thread(updater);
+			thread.start();
+			threads.add(thread);
+		}
+		for (Thread thread : threads) {
+			try {
+				thread.join();
+			} catch (InterruptedException e) {
+				System.out.println("thread interrupted");
+			}
+		}
+		for (Cell c : this.currentGen) {
+			c.setState();
+		}
+	}
+
+	private void splitCellsToUpdaters() {
+		int nCores = Runtime.getRuntime().availableProcessors();
+		// no point having more threads than cells
+		nCores = Math.min(nCores, currentGen.length);
+		final int cellsPerThread = currentGen.length / nCores;
+		
+		// nCores - 1 threads all get cellsPerThread of cells to update
+		for (int t = 0; t < nCores - 1; t++) {
+			final int cellsFrom = cellsPerThread * t;
+			final int cellsTo = cellsPerThread * (t + 1);
+			updaters.add(new Runnable() {
+					public void run() {
+						for (int c = cellsFrom; c < cellsTo; c++) {
+							currentGen[c].calcState();
+						}
+					}
+				});
+		}
+		// the last thread gets the rest of the cells
+		final int rest = (nCores - 1) * cellsPerThread;
+		updaters.add(new Runnable() {
+				public void run() {
+					for (int c = rest; c < currentGen.length; c++) {
+						currentGen[c].calcState();
+					}
+				}
+			});
+	}
+
+	private Cell[] neighbours(int x, int y) {
+		Cell[] neighbours = {
+			cellAt(x-1, y-1),
+			cellAt(x, y-1),
+			cellAt(x+1, y-1),
+			cellAt(x-1, y),
+			cellAt(x+1, y),
+			cellAt(x-1, y+1),
+			cellAt(x, y+1),
+			cellAt(x+1, y+1)};
+		return neighbours;
 	}
 
 }

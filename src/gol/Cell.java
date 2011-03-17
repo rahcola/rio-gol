@@ -2,13 +2,13 @@ package gol;
 
 public class Cell {
 
-	private volatile boolean alive;
-	private boolean newAlive;
+	private boolean state;
+	private boolean newState;
 	private Cell[] neighbours;
 
-	public Cell(boolean alive) {
-		this.alive = alive;
-		this.newAlive = alive;
+	public Cell(boolean state) {
+		this.state = state;
+		this.newState = state;
 		this.neighbours = null;
 	}
 
@@ -16,31 +16,31 @@ public class Cell {
 		this.neighbours = neighbours;
 	}
 
-	public void calculateNewState() {
+	public void calcState() {
 		if (this.neighbours == null) {
 			return;
 		}
 
 		int aliveNeighbours = 0;
 		for (Cell n : this.neighbours) {
-			if (n.alive())
+			if (n.getState())
 				aliveNeighbours += 1;
 		}
 
-		if (this.alive && (aliveNeighbours == 2 || aliveNeighbours ==3))
-			this.newAlive = true;
-		else if (!alive && aliveNeighbours == 3)
-			this.newAlive = true;
+		if (this.state && (aliveNeighbours == 2 || aliveNeighbours ==3))
+			this.newState = true;
+		else if (!this.state && aliveNeighbours == 3)
+			this.newState = true;
 		else
-			this.newAlive = false;
+			this.newState = false;
 	}
 
-	public boolean alive() {
-		return this.alive;
+	public boolean getState() {
+		return this.state;
 	}
 
-	public void setNewState() {
-		this.alive = this.newAlive;
+	public void setState() {
+		this.state = this.newState;
 	}
 
 }
