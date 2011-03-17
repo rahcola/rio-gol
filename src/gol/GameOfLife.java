@@ -1,5 +1,9 @@
 package gol;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ExecutionException;
 import java.util.LinkedList;
 
 public class GameOfLife {
@@ -8,12 +12,14 @@ public class GameOfLife {
 	private int height;
 	private Cell[] currentGen;
 	private LinkedList<Runnable> updaters;
+	private ExecutorService pool;
 
 	public GameOfLife(boolean[][] cells) {
 		this.width = cells[0].length;
 		this.height = cells.length;
 		this.currentGen = new Cell[this.width * this.height];
 		this.updaters = new LinkedList<Runnable>();
+		this.pool = Executors.newCachedThreadPool();
 
 		for (int y = 0; y < this.height; ++y) {
 			for (int x = 0; x < this.width; ++x) {
@@ -45,18 +51,18 @@ public class GameOfLife {
 	}
 
 	public void step() {
-		LinkedList<Thread> threads = new LinkedList<Thread>();
+		LinkedList<Future> futures = new LinkedList<Future>();
 
 		for (Runnable updater : this.updaters) {
-			Thread thread = new Thread(updater);
-			thread.start();
-			threads.add(thread);
+			futures.add(pool.submit(updater));
 		}
-		for (Thread thread : threads) {
+		for (Future future : futures) {
 			try {
-				thread.join();
+				future.get();
+			} catch (ExecutionException e) {
+				System.out.println("execution exception");
 			} catch (InterruptedException e) {
-				System.out.println("thread interrupted");
+				System.out.println("interrupted");
 			}
 		}
 		for (Cell c : this.currentGen) {
