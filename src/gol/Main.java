@@ -5,7 +5,7 @@ import javax.swing.JFrame;
 
 public class Main {
 	public static void main(String[] args) {
-
+		/*
 		GameOfLife game = new Minimal();
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < 1000; i++) {
@@ -14,7 +14,7 @@ public class Main {
 		long stop = System.currentTimeMillis();
 		System.out.println(stop - start);
 		System.exit(0);
-		/*
+		*/
 		SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
 					JFrame frame = new JFrame();
@@ -25,6 +25,6 @@ public class Main {
 					frame.setVisible(true);
 				}
 			});
-		*/
+
 	}
 }
