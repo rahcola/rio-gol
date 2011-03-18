@@ -5,6 +5,7 @@ import javax.swing.JFrame;
 
 public class Main {
 	public static void main(String[] args) {
+
 		GameOfLife game = new Minimal();
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < 100; i++) {
