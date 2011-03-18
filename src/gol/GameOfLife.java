@@ -5,6 +5,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.LinkedList;
 
 public class GameOfLife {
@@ -22,12 +23,10 @@ public class GameOfLife {
 		this.currentGen = new Cell[this.width * this.height];
 		this.updaters = new LinkedList<Runnable>();
 		this.pool = Executors.newCachedThreadPool();
-		this.barrier = new CyclicBarrier(this.width * this.height);
 
 		for (int y = 0; y < this.height; ++y) {
 			for (int x = 0; x < this.width; ++x) {
-				currentGen[(y * this.width) + x] = new Cell(cells[y][x],	
-															this.barrier);
+				currentGen[(y * this.width) + x] = new Cell(cells[y][x]);
 			}
 		}
 		for (int y = 0; y < this.height; ++y) {
@@ -42,7 +41,7 @@ public class GameOfLife {
 		try {
 			return currentGen[(y * this.width) + x];
 		} catch (IndexOutOfBoundsException e) {
-			return new Cell(false, this.barrier);
+			return new Cell(false);
 		}
 	}
 
@@ -55,21 +54,17 @@ public class GameOfLife {
 	}
 
 	public void step() {
-		LinkedList<Future> futures = new LinkedList<Future>();
-
 		for (Runnable updater : this.updaters) {
-			futures.add(pool.submit(updater));
+			pool.execute(updater);
 		}
-		for (Future future : futures) {
-			try {
-				future.get();
-			} catch (ExecutionException e) {
-				System.out.println("execution exception");
-			} catch (InterruptedException e) {
-				System.out.println("interrupted");
-			}
+
+		try {
+			this.barrier.await();
+		} catch (InterruptedException e) {
+			System.out.println("interrupted");
+		} catch (BrokenBarrierException e) {
+			System.out.println("broken barrier");
 		}
-		this.barrier.reset();
 	}
 
 	public void shutdown() {
@@ -80,6 +75,7 @@ public class GameOfLife {
 		int nCores = Runtime.getRuntime().availableProcessors();
 		// no point having more threads than cells
 		nCores = Math.min(nCores, currentGen.length);
+		this.barrier = new CyclicBarrier(nCores + 1);
 		final int cellsPerThread = currentGen.length / nCores;
 		
 		// nCores - 1 threads all get cellsPerThread of cells to update
@@ -91,6 +87,16 @@ public class GameOfLife {
 						for (int c = cellsFrom; c < cellsTo; c++) {
 							currentGen[c].calcState();
 						}
+						try {
+							barrier.await();
+						} catch (InterruptedException e) {
+							System.out.println("interrupted");
+						} catch (BrokenBarrierException e) {
+							System.out.println("broken barrier");
+						}
+						for (int c = cellsFrom; c < cellsTo; c++) {
+							currentGen[c].setState();
+						}
 					}
 				});
 		}
@@ -100,6 +106,16 @@ public class GameOfLife {
 				public void run() {
 					for (int c = rest; c < currentGen.length; c++) {
 						currentGen[c].calcState();
+					}
+					try {
+						barrier.await();
+					} catch (InterruptedException e) {
+						System.out.println("interrupted");
+					} catch (BrokenBarrierException e) {
+						System.out.println("broken barrier");
+					}
+					for (int c = rest; c < currentGen.length; c++) {
+						currentGen[c].setState();
 					}
 				}
 			});
