@@ -4,6 +4,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CyclicBarrier;
 import java.util.LinkedList;
 
 public class GameOfLife {
@@ -13,6 +14,7 @@ public class GameOfLife {
 	private Cell[] currentGen;
 	private LinkedList<Runnable> updaters;
 	private ExecutorService pool;
+	private CyclicBarrier barrier;
 
 	public GameOfLife(boolean[][] cells) {
 		this.width = cells[0].length;
@@ -20,10 +22,12 @@ public class GameOfLife {
 		this.currentGen = new Cell[this.width * this.height];
 		this.updaters = new LinkedList<Runnable>();
 		this.pool = Executors.newCachedThreadPool();
+		this.barrier = new CyclicBarrier(this.width * this.height);
 
 		for (int y = 0; y < this.height; ++y) {
 			for (int x = 0; x < this.width; ++x) {
-				currentGen[(y * this.width) + x] = new Cell(cells[y][x]);
+				currentGen[(y * this.width) + x] = new Cell(cells[y][x],	
+															this.barrier);
 			}
 		}
 		for (int y = 0; y < this.height; ++y) {
@@ -38,7 +42,7 @@ public class GameOfLife {
 		try {
 			return currentGen[(y * this.width) + x];
 		} catch (IndexOutOfBoundsException e) {
-			return new Cell(false);
+			return new Cell(false, this.barrier);
 		}
 	}
 
@@ -65,9 +69,7 @@ public class GameOfLife {
 				System.out.println("interrupted");
 			}
 		}
-		for (Cell c : this.currentGen) {
-			c.setState();
-		}
+		this.barrier.reset();
 	}
 
 	public void shutdown() {
