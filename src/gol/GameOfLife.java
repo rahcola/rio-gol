@@ -15,7 +15,8 @@ public class GameOfLife {
 	private Cell[] currentGen;
 	private LinkedList<Runnable> updaters;
 	private ExecutorService pool;
-	private CyclicBarrier barrier;
+	private CyclicBarrier calcBarrier;
+	private CyclicBarrier setBarrier;
 
 	public GameOfLife(boolean[][] cells) {
 		this.width = cells[0].length;
@@ -59,7 +60,7 @@ public class GameOfLife {
 		}
 
 		try {
-			this.barrier.await();
+			this.setBarrier.await();
 		} catch (InterruptedException e) {
 			System.out.println("interrupted");
 		} catch (BrokenBarrierException e) {
@@ -75,7 +76,8 @@ public class GameOfLife {
 		int nCores = Runtime.getRuntime().availableProcessors();
 		// no point having more threads than cells
 		nCores = Math.min(nCores, currentGen.length);
-		this.barrier = new CyclicBarrier(nCores + 1);
+		this.calcBarrier = new CyclicBarrier(nCores);
+		this.setBarrier = new CyclicBarrier(nCores + 1);
 		final int cellsPerThread = currentGen.length / nCores;
 		
 		// nCores - 1 threads all get cellsPerThread of cells to update
@@ -88,14 +90,15 @@ public class GameOfLife {
 							currentGen[c].calcState();
 						}
 						try {
-							barrier.await();
+							calcBarrier.await();
+							for (int c = cellsFrom; c < cellsTo; c++) {
+								currentGen[c].setState();
+							}
+							setBarrier.await();
 						} catch (InterruptedException e) {
 							System.out.println("interrupted");
 						} catch (BrokenBarrierException e) {
 							System.out.println("broken barrier");
-						}
-						for (int c = cellsFrom; c < cellsTo; c++) {
-							currentGen[c].setState();
 						}
 					}
 				});
@@ -108,14 +111,15 @@ public class GameOfLife {
 						currentGen[c].calcState();
 					}
 					try {
-						barrier.await();
+						calcBarrier.await();
+						for (int c = rest; c < currentGen.length; c++) {
+							currentGen[c].setState();
+						}
+						setBarrier.await();
 					} catch (InterruptedException e) {
 						System.out.println("interrupted");
 					} catch (BrokenBarrierException e) {
 						System.out.println("broken barrier");
-					}
-					for (int c = rest; c < currentGen.length; c++) {
-						currentGen[c].setState();
 					}
 				}
 			});
