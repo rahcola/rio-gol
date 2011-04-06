@@ -7,11 +7,11 @@ public class Main {
 	public static void main(String[] args) {
 		GameOfLife game = new Minimal();
 		long start = System.currentTimeMillis();
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 1000; i++) {
 			game.step();
 		}
 		long stop = System.currentTimeMillis();
-		System.out.println(stop - start);
+		System.out.println((stop - start) / 1000);
 		game.shutdown();
 		/*
 		SwingUtilities.invokeLater(new Runnable() {
