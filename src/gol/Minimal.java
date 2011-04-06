@@ -8,7 +8,7 @@ public class Minimal extends GameOfLife {
 
 
 	private static boolean[][] create() {
-		boolean[][] cells = new boolean[200][200];
+		boolean[][] cells = new boolean[800][800];
 
 		for (int y = 0; y < cells.length; y++) {
 			for (int x = 0; x < cells.length; x++) {
