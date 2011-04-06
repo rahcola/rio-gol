@@ -2,13 +2,12 @@ package gol;
 
 public class Cell {
 
-	private boolean state;
-	private boolean newState;
+    private boolean state;
+    private boolean new_state;
 	private Cell[] neighbours;
 
 	public Cell(boolean state) {
-		this.state = state;
-		this.newState = state;
+        this.state = state;
 		this.neighbours = null;
 	}
 
@@ -28,19 +27,19 @@ public class Cell {
 		}
 
 		if (this.state && (aliveNeighbours == 2 || aliveNeighbours ==3))
-			this.newState = true;
+            this.new_state = true;
 		else if (!this.state && aliveNeighbours == 3)
-			this.newState = true;
+            this.new_state = true;
 		else
-			this.newState = false;
+            this.new_state = false;
 	}
 
 	public boolean getState() {
 		return this.state;
 	}
 
-	public void setState() {
-		this.state = this.newState;
-	}
+    public void setState() {
+        this.state = this.new_state;
+    }
 
 }

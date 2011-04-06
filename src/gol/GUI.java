@@ -27,7 +27,7 @@ public class GUI extends JPanel implements ActionListener {
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		this.gol.step();
+		this.gol.step(100);
 		this.repaint();
 	}
 
