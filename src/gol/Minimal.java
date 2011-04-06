@@ -3,29 +3,28 @@ package gol;
 public class Minimal extends GameOfLife {
 
 	public Minimal() {
-		super(create());
+		super(create(), 800);
 	}
 
 
-	private static boolean[][] create() {
-		boolean[][] cells = new boolean[800][800];
+	private static boolean[] create() {
+        int size = 800;
+		boolean[] cells = new boolean[size * size];
 
 		for (int y = 0; y < cells.length; y++) {
-			for (int x = 0; x < cells.length; x++) {
-				cells[y][x] = false;
-			}
+            cells[y] = false;
 		}
 
-		cells[100][107] = true;
-		cells[102][105] = true;
-		cells[102][107] = true;
-		cells[102][108] = true;
-		cells[103][105] = true;
-		cells[103][107] = true;
-		cells[104][105] = true;
-		cells[105][103] = true;
-		cells[106][101] = true;
-		cells[106][103] = true;
+		cells[100 + (107 * size)] = true;
+		cells[102 + (105 * size)] = true;
+		cells[102 + (107 * size)] = true;
+		cells[102 + (108 * size)] = true;
+		cells[103 + (105 * size)] = true;
+		cells[103 + (107 * size)] = true;
+		cells[104 + (105 * size)] = true;
+		cells[105 + (103 * size)] = true;
+		cells[106 + (101 * size)] = true;
+		cells[106 + (103 * size)] = true;
 		return cells;
 	}
 }

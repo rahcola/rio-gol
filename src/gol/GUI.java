@@ -41,7 +41,7 @@ public class GUI extends JPanel implements ActionListener {
 
 		for (int y = 0; y < this.gol.getHeight(); y++) {
 			for (int x = 0; x < this.gol.getWidth(); x++) {
-				if (this.gol.cellAt(x, y).getState()) {
+				if (this.gol.cellAt(x, y)) {
 					g.setColor(Color.GRAY);
 				} else {
 					g.setColor(Color.BLACK);

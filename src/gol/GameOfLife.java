@@ -1,8 +1,8 @@
 package gol;
 
+import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.BrokenBarrierException;
@@ -10,48 +10,37 @@ import java.util.LinkedList;
 
 public class GameOfLife {
 
-	private int width;
-	private int height;
-	private Cell[] currentGen;
+	private int size;
+	private boolean[] currentGen;
+    private boolean[] nextGen;
 	private LinkedList<Runnable> updaters;
 	private ExecutorService pool;
-	private CyclicBarrier calcBarrier;
-	private CyclicBarrier setBarrier;
+    private CyclicBarrier setBarrier;
 
-	public GameOfLife(boolean[][] cells) {
-		this.width = cells[0].length;
-		this.height = cells.length;
-		this.currentGen = new Cell[this.width * this.height];
+	public GameOfLife(boolean[] cells, int size) {
+        this.size = size;
+		this.currentGen = Arrays.copyOf(cells, cells.length);
+		this.nextGen = Arrays.copyOf(cells, cells.length);
 		this.updaters = new LinkedList<Runnable>();
 		this.pool = Executors.newCachedThreadPool();
 
-		for (int y = 0; y < this.height; ++y) {
-			for (int x = 0; x < this.width; ++x) {
-				currentGen[(y * this.width) + x] = new Cell(cells[y][x]);
-			}
-		}
-		for (int y = 0; y < this.height; ++y) {
-			for (int x = 0; x < this.width; ++x) {
-				currentGen[(y * this.width) + x].setNeighbours(neighbours(x, y));
-			}
-		}
 		splitCellsToUpdaters();
 	}
 
-	public Cell cellAt(int x, int y) {
+	public boolean cellAt(int x, int y) {
 		try {
-			return currentGen[(y * this.width) + x];
+			return currentGen[(y * this.size) + x];
 		} catch (IndexOutOfBoundsException e) {
-			return new Cell(false);
+			return false;
 		}
 	}
 
 	public int getWidth() {
-		return this.width;
+		return this.size;
 	}
 
 	public int getHeight() {
-		return this.height;
+		return this.size;
 	}
 
 	public void step() {
@@ -66,6 +55,8 @@ public class GameOfLife {
 		} catch (BrokenBarrierException e) {
 			System.out.println("broken barrier");
 		}
+
+        swapBuffers();
 	}
 
 	public void shutdown() {
@@ -76,8 +67,9 @@ public class GameOfLife {
 		int nCores = Runtime.getRuntime().availableProcessors();
 		// no point having more threads than cells
 		nCores = Math.min(nCores, currentGen.length);
-		this.calcBarrier = new CyclicBarrier(nCores);
+
 		this.setBarrier = new CyclicBarrier(nCores + 1);
+
 		final int cellsPerThread = currentGen.length / nCores;
 		
 		// nCores - 1 threads all get cellsPerThread of cells to update
@@ -87,46 +79,64 @@ public class GameOfLife {
 			updaters.add(new Runnable() {
 					public void run() {
 						for (int c = cellsFrom; c < cellsTo; c++) {
-							currentGen[c].calcState();
+							nextGen[c] = newState(currentGen[c],
+                                                  neighbours(c % size,
+                                                             c / size));
+                            try {
+                                setBarrier.await();
+                            } catch (InterruptedException e) {
+                                System.out.println("interrupted");
+                            } catch (BrokenBarrierException e) {
+                                System.out.println("broken barrier");
+                            }
 						}
-						try {
-							calcBarrier.await();
-							for (int c = cellsFrom; c < cellsTo; c++) {
-								currentGen[c].setState();
-							}
-							setBarrier.await();
-						} catch (InterruptedException e) {
-							System.out.println("interrupted");
-						} catch (BrokenBarrierException e) {
-							System.out.println("broken barrier");
-						}
-					}
+                    }
 				});
 		}
+
 		// the last thread gets the rest of the cells
 		final int rest = (nCores - 1) * cellsPerThread;
 		updaters.add(new Runnable() {
 				public void run() {
 					for (int c = rest; c < currentGen.length; c++) {
-						currentGen[c].calcState();
-					}
-					try {
-						calcBarrier.await();
-						for (int c = rest; c < currentGen.length; c++) {
-							currentGen[c].setState();
-						}
-						setBarrier.await();
-					} catch (InterruptedException e) {
-						System.out.println("interrupted");
-					} catch (BrokenBarrierException e) {
-						System.out.println("broken barrier");
+                        nextGen[c] = newState(currentGen[c],
+                                              neighbours(c % size,
+                                                         c / size));
+                        try {
+                            setBarrier.await();
+                        } catch (InterruptedException e) {
+                            System.out.println("interrupted");
+                        } catch (BrokenBarrierException e) {
+                            System.out.println("broken barrier");
+                        }
 					}
 				}
 			});
 	}
 
-	private Cell[] neighbours(int x, int y) {
-		Cell[] neighbours = {
+    private boolean newState(boolean state, boolean[] neighbours) {
+		int aliveNeighbours = 0;
+		for (boolean n : neighbours) {
+			if (n)
+                aliveNeighbours += 1;
+		}
+
+		if (state && (aliveNeighbours == 2 || aliveNeighbours ==3))
+			return true;
+		else if (!state && aliveNeighbours == 3)
+			return true;
+		else
+			return false;
+    }
+
+    private void swapBuffers() {
+        boolean[] tmp = this.currentGen;
+        this.currentGen = this.nextGen;
+        this.nextGen = tmp;
+    }
+
+	private boolean[] neighbours(int x, int y) {
+		boolean[] neighbours = {
 			cellAt(x-1, y-1),
 			cellAt(x, y-1),
 			cellAt(x+1, y-1),
@@ -134,7 +144,8 @@ public class GameOfLife {
 			cellAt(x+1, y),
 			cellAt(x-1, y+1),
 			cellAt(x, y+1),
-			cellAt(x+1, y+1)};
+			cellAt(x+1, y+1)
+        };
 		return neighbours;
 	}
 
