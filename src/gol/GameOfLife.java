@@ -8,10 +8,10 @@ public class GameOfLife {
     private boolean[] next_gen;
     private int size;
 
-    public GameOfLife(boolean[][] cells, int size) {
+    public GameOfLife(boolean[][] cells) {
+        this.size = cells.length;
         this.current_gen = new boolean[size * size];
         this.next_gen = new boolean[size * size];
-        this.size = size;
 
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
@@ -85,7 +85,7 @@ public class GameOfLife {
         }
     }
 
-    public boolean newState(int x, int y) {
+    private boolean newState(int x, int y) {
         boolean state = current_gen[(y * size) + x];
         int alive = 0;
         for (boolean n : neighbours(x, y)) {

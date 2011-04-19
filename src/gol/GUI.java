@@ -13,7 +13,7 @@ import java.awt.Color;
 public class GUI extends JPanel implements ActionListener {
 
 	final int MARGIN = 0;
-	final int CELL_SIZE = 5;
+	final int CELL_SIZE = 1;
 
 	private GameOfLife gol;
 	private boolean updating;
