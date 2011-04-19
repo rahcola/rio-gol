@@ -124,6 +124,24 @@ public class GameOfLife {
     }
 
     /*
+      Calculate the life _times_ generations forward.
+      
+      This method is for verification and for use in single core enviroments.
+    */
+    public void serialStep(int times) {
+        int i = 0;
+        for (int t = 0; t < times; t++) {
+            for (int y = 0; y < this.size; y++) {
+                for (int x = 0; x < this.size; x++) {
+                    i = (y * this.size) + x;
+                    this.next_gen[i] = newState(x, y);
+                }
+            }
+            swapBuffers();
+        }
+    }
+
+    /*
       Calculate new state based on the current state of the cell and
       its eight neighbours.
 
@@ -166,6 +184,24 @@ public class GameOfLife {
         boolean[] tmp = this.current_gen;
         this.current_gen = this.next_gen;
         this.next_gen = tmp;
+    }
+
+    /* Two games are equal if they contain the exact same life in current_gen. */
+    public boolean equals(GameOfLife other) {
+        if (this.size != other.size) {
+            return false;
+        }
+
+        int i = 0;
+        for (int y = 0; y < this.size; y++) {
+            for (int x = 0; x < this.size; x++) {
+                i = (y * this.size) + x;
+                if (this.current_gen[i] != other.current_gen[i]) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
 }

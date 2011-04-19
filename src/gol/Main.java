@@ -11,10 +11,15 @@ public class Main {
     
     public static void main(String[] args) {
         GameOfLife game = new GameOfLife(readBoard());
+        GameOfLife verification = new GameOfLife(readBoard());
+
         long start = System.currentTimeMillis();
-        game.step(steps);
+        game.step(10);
         long stop = System.currentTimeMillis();
-        System.out.println((stop - start) / 1000);
+        System.out.println(steps + " steps took " + (stop - start) / 1000 + " seconds");
+
+        verification.step(10);
+        System.out.println("correct? " + game.equals(verification));
 
         /*
           Visualizing a 800x800 board is a bit intens, but doable.
@@ -43,6 +48,7 @@ public class Main {
                     board[j][i] = reader.nextInt() == 1;
                 }
             }
+            reader.close();
             return board;
         } catch (FileNotFoundException e) {
             System.out.println(e);
