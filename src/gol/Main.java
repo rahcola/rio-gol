@@ -12,10 +12,13 @@ public class Main {
     public static void main(String[] args) {
         GameOfLife game = new GameOfLife(readBoard());
         long start = System.currentTimeMillis();
-        game.step(100);
+        game.step(steps);
         long stop = System.currentTimeMillis();
         System.out.println((stop - start) / 1000);
+
         /*
+          Visualizing a 800x800 board is a bit intens, but doable.
+
         SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
                     JFrame frame = new JFrame();
@@ -31,7 +34,7 @@ public class Main {
 
     public static boolean[][] readBoard() {
         try {
-            Scanner reader = new Scanner(new File("/home/jani/life.txt"));
+            Scanner reader = new Scanner(new File("/fs-1/2/kerola/life_800_10000.txt"));
             int size = reader.nextInt();
             steps = reader.nextInt();
             boolean[][] board = new boolean[size][size];

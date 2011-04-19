@@ -2,6 +2,19 @@ package gol;
 
 import java.util.concurrent.CyclicBarrier;
 
+/*
+  Double buffered approach with flat boolean arrays.
+
+  Current generation is held in one buffer and the next generation is
+  calculated to another. When the calculations are complete, swap the
+  array references so that current_gen will always hold to most
+  up-to-date generation. This ensures that the next generation is
+  calculated from a single current generation, held in current_gen.
+
+  Parallelization is done using shared memory in form of current_gen and
+  next_gen. Synchronization barriers are used to signal the swap of
+  buffers.
+  */
 public class GameOfLife {
 
     private boolean[] current_gen;
@@ -20,6 +33,10 @@ public class GameOfLife {
         }
     }
 
+    /*
+      Indexing a flat buffer with matrix coordinates requires a simple
+      calculation. Assume cells outside the buffer dead.
+    */
     public boolean cellAt(int x, int y) {
         try {
             return current_gen[(y * this.size) + x];
@@ -28,6 +45,7 @@ public class GameOfLife {
         }
     }
 
+    /* For visualizationing with a GUI */
     public int getWidth() {
         return size;
     }
@@ -36,6 +54,19 @@ public class GameOfLife {
         return size;
     }
 
+    /*
+      Calculate the life _times_ generations forward.
+
+      For efficiency, generations should be calculated in batches so
+      that threads are created only once. Give one thread atleast a row
+      of cells to update, as the update operation is rather fast and
+      threads are memory intensive.
+
+      Synchronize using two barries, one to signal that the new
+      generation is calculated and the buffers can be swapped, and
+      another one to signal that the buffers are swapped and the
+      calculations can continue.
+    */
     public void step(final int times) {
         int cores = Runtime.getRuntime().availableProcessors();
         // atleast a row of cells per thread
@@ -92,6 +123,14 @@ public class GameOfLife {
         }
     }
 
+    /*
+      Calculate new state based on the current state of the cell and
+      its eight neighbours.
+
+      Cell dead or alive with three neighbours alive lives.
+      Cell alive with two neighbours alive lives.
+      Every other cell dies.
+    */
     private boolean newState(int x, int y) {
         boolean state = current_gen[(y * size) + x];
         int alive = 0;
@@ -122,6 +161,7 @@ public class GameOfLife {
         return neighbours;
     }
 
+    /* Swap the buffer references */
     private void swapBuffers() {
         boolean[] tmp = this.current_gen;
         this.current_gen = this.next_gen;

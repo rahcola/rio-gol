@@ -12,7 +12,9 @@ import java.awt.Color;
 
 public class GUI extends JPanel implements ActionListener {
 
+    // margin around every cell in pixels
 	final int MARGIN = 0;
+    // in pixels
 	final int CELL_SIZE = 1;
 
 	private GameOfLife gol;
