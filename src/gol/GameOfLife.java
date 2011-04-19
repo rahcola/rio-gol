@@ -38,8 +38,13 @@ public class GameOfLife {
 
     public void step(final int times) {
         int cores = Runtime.getRuntime().availableProcessors();
+        // atleast a row of cells per thread
         cores = Math.min(cores, this.size);
+        // for syncing when to swap buffers
         final CyclicBarrier swapBarrier = new CyclicBarrier(cores + 1);
+        // for syncing that the buffers have been swapped
+        final CyclicBarrier swappedBarrier = new CyclicBarrier(cores + 1);
+
         Thread[] threads = new Thread[cores];
         final int rows_per_thread = this.size / cores;
         
@@ -57,6 +62,7 @@ public class GameOfLife {
                             }
                             try {
                                 swapBarrier.await();
+                                swappedBarrier.await();
                             } catch (Exception e) {
                                 System.out.println(e);
                             }
@@ -70,10 +76,11 @@ public class GameOfLife {
         for (int t = 0; t < times; t++) {
             try {
                 swapBarrier.await();
+                swapBuffers();
+                swappedBarrier.await();
             } catch (Exception e) {
                 System.out.println(e);
             }
-            swapBuffers();
         }
 
         for (Thread t : threads) {
