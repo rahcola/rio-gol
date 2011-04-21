@@ -38,11 +38,10 @@ public class GameOfLife {
       calculation. Assume cells outside the buffer dead.
     */
     public boolean cellAt(int x, int y) {
-        try {
-            return current_gen[(y * this.size) + x];
-        } catch (IndexOutOfBoundsException e) {
+        if (x >= this.size || y >= this.size || x < 0 || y < 0) {
             return false;
         }
+        return current_gen[(y * this.size) + x];
     }
 
     /* For visualizationing with a GUI */

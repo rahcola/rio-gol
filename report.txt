@@ -1,0 +1,110 @@
+Game of Life
+Rinnakkaisohjelmoinnin harjoitustyö
+Helsingin yliopisto, tietojenkäsittelytieteen laitos
+19.4.2011
+
+Jani Rahkola
+013606996
+
+Johdatus ongelmaan
+
+Game of Life on John Horton Conwayn kehittämä soluautomaatti jossa solut
+elävät kaksiulotteisessa avaruudessa ja niillä on kaksi mahdollista
+tilaa, elossa ja kuollut. Soluista muodostuvan sukupolven seuraaja
+lasketaan edeltäjästään seuraavan funktion avulla. Olkoon x solu,
+kuvatkoon tosi elossa olevaa ja epätosi kuollutta solua ja n solun
+elossa olevien naapureiden määrä.
+
+x ja (n < 2 tai n > 3) |-> !x
+x ja (n = 2 tai n = 3) |-> x
+!x ja n = 3 |-> x
+
+Tätä funktiota sovelletaan edeltävän sukupolven soluille kaikkille
+samanaikaisesti. Tämä luo pelin simuloinnin ensimmäisen
+ongelman. Edeltävän sukupolven varaamaa muistia ei voida vapauttaa tai
+muokata ennen kuin seuraava sukupolvi on laskettu.
+
+Matemaattisessa mallissa sukupolvi on rajoittamattoman
+kokoinen. Tietokoneen rajoitetun muistin takia joudutaan kuitenkin
+sukupolven kokoa rajoittamaan jollain tapaa.
+
+Koska seuraava sukupolvi voidaan laskea puhtaalla funktiolla
+edeltäjästään, soveltuu rinnakkainen laskenta luontevasti ongelman
+ratkaisuun. Tulee kuitenkin pitää huolta, että edeltävää sukupolvea
+kuvaava tila pysyy muuttumattomana kunnes seuraaja sukupolvi on
+kokonaisuudessaan laskettu. Lisäksi laskenta ei voi edetä ennen kuin
+edellisellä kierroksella laskettu sukupolvi on asetettu nykyiseksi
+sukupolveksi.
+
+Ratkaisut
+
+Sukupolvi on esitetty yksiulotteisena totuusarvotaulukkona. Tällä
+esitystavalla sukupolvi kattaa neliön muotoisen alueen, ja alueen
+ulkopuolelle jäävät solut oletetaan kuolleiksi. Yksiulotteinen taulukko
+vähentää laskennassa tarvittavia muistiviittauksia, ja toivottavasti
+parantaa muistin lokaalisuutta. Tätä ei kuitenkaan ole todettu
+mittauksilla, sillä ratkaisussa on keskitytty rinnakkaisuuden
+optimointiin.
+
+Simuloinnin perusongelma, edeltävän sukupolven tilan säilyttäminen, on
+ratkaistu varaamalla kaksi saman kokoista taulukkoa. Ensimmäisessä
+pidetään nykyhetkeä kuvaavaa sukupolvea, ja seuraaja lasketaan toiseen
+taulukkoon. Kun laskenta on valmistunut, vaihdetaan taulukkojen viitteet
+päittäin, jolloin vältytään muistin kopioimiselta.
+
+Varsinainen laskenta on jaettu käytettävissä olevien laskentaytimien
+määrän mukaan. Jokaista ydintä kohden luodaan Javan säie, ja säikeen
+laskettavaksi annetaan tietty määrä sukupolven rivejä. Mikäli ytimiä on
+käytettävissä enemmän kuin sukupolvessa rivijä, luodaan säikeitä yksi
+jokaista riviä kohden. Näin tehdään koska seuraavan sukupolven laskenta
+on verrattain nopea operaatio, eikä Javan raskaita säikeitä kannata
+luoda hyvin lyhyttä laskentaa varten. Tarkemman analyysin perusteella
+voitaisiin valita optimaalinen määrä sukupolven soluja yhden säikeen
+päivitettäväksi.
+
+Viestinnässä käytetään semaforiin pohjautuvia, Javan kirjaston valmiiksi
+tarjoamia, synkronointiesteitä
+(java.util.concurrent.CyclicBarrier). Esteitä on kaksi, swapBarrier ja
+swappedBarrier, ja ne on jaettu kaikkien laskentaan osallistuvien
+säikeiden kesken. Yksi kierros laskentaa etenee seuraavasti. Jokainen
+säie laskee vastuulleen annettujen solujen uuden sukupolven nykyisen
+sukupolven pohjalta, ja sijoittaa tuloksen sille varattuun toiseen
+taulukkoon. Tämän jälkeen säie jää odottamaan swapBarrier-esteeseen
+kunnes muut säikeet ovat suorittaneet laskennan ja siirtyneet odottamaan
+samaan esteeseen. Käynnistettyään laskennan myös hallinnoiva säie
+siirtyy odottamaan swapBarrier-esteeseen. Kun kaikki säikeet ovat
+saapuneet esteeseen etenee hallinnoiva säie ja vaihtaa sukupolven tilaa
+kuvaavien taulukoiden viitteet. Samalla laskentaa hoitavat säikeet ovat
+siirtyneet odottamaan swappedBarrier-esteeseen. Kun taulukkoviitteet on
+vaihdettu, saapuu hallinnoiva säie swappedBarrier-esteeseen ja laskenta
+etenee mahdolliselle seuraavalle kierrokselle.
+
+Päivityksen tekevälle metodille annetaan parametrina tieto siitä kuinka
+monta sukupolvea eteenpäin soluautomaatin tilaa lasketaan. Näin voidaan
+laskea useita sukupolvia käyttäen kerran luotuja säikeitä, ja vältytään
+säikeiden luomiselta jokaisen päivityskierroksen alussa.
+
+Arvio
+
+Algoritmin oikeellisuus tarkistetaan laskennan jälkeen käyttämällä
+peräkkäisalgoritmia. Peräkkäisalgoritmi tosin jakaa monia metodeja
+rinnakkaisen algoritmin kanssa, ja näin jotkin virheet saattavat jäädä
+huomaamatta.
+
+Algoritmin tehokkuus riippuu käytössä olevien ytimien määrän ja
+sukupolven suuruuden suhteesta. Mikäli sukupolvi on pieni ja ytimiä
+useita, syntyy säikeiden luonnista ja niiden välisestä synkronoinnista
+tarpeetonta laskentaa joka hidastaa algoritmia. TODO: missä menee raja.
+
+Algoritmiin tehty valinta säikeiden määrän rajoittamisesta rajoittaa
+myös algoritmin skaalautuvuutta suurille määrille ytimiä. Rajoitus on
+kuitenkin pakollinen Javan säikeiden raskauden takia. Säikeet vievät
+erityisesti paljon muistia. Joka tapauksessa ytimien lisäämisestä
+saatava hyöty loppuisi kun niiden määrä saavuttaa sukupolven solujen
+määrän.
+
+TODO: hyöty ennen kuin ytimien määrä saavuttaa rivien määrän
+
+Käyttöohjeet
+
+Liitteet
