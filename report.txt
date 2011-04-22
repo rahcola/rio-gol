@@ -89,21 +89,43 @@ Arvio
 Algoritmin oikeellisuus tarkistetaan laskennan jälkeen käyttämällä
 peräkkäisalgoritmia. Peräkkäisalgoritmi tosin jakaa monia metodeja
 rinnakkaisen algoritmin kanssa, ja näin jotkin virheet saattavat jäädä
-huomaamatta.
-
-Algoritmin tehokkuus riippuu käytössä olevien ytimien määrän ja
-sukupolven suuruuden suhteesta. Mikäli sukupolvi on pieni ja ytimiä
-useita, syntyy säikeiden luonnista ja niiden välisestä synkronoinnista
-tarpeetonta laskentaa joka hidastaa algoritmia. TODO: missä menee raja.
+huomaamatta. Toisaalta rinnakkaisesta laskennasta syntyvien virheiden
+tulisi paljastua.
 
 Algoritmiin tehty valinta säikeiden määrän rajoittamisesta rajoittaa
 myös algoritmin skaalautuvuutta suurille määrille ytimiä. Rajoitus on
 kuitenkin pakollinen Javan säikeiden raskauden takia. Säikeet vievät
 erityisesti paljon muistia. Joka tapauksessa ytimien lisäämisestä
 saatava hyöty loppuisi kun niiden määrä saavuttaa sukupolven solujen
-määrän.
+määrän. Pienillä sukupolvilla suuri ytimien määrä aiheuttaa hyvin vähän
+laskentaa tekevien säikeiden luontia, mutta pienet sukupolvet ovat
+sovelluksissa harvinaisia.
 
-TODO: hyöty ennen kuin ytimien määrä saavuttaa rivien määrän
+Ytimien määrän kaksinkertaistamisen tulisi puolittaa laskentaan kuluva
+aika. Synkronointiin kuluva aika toki lisääntyy säikeiden myötä, mutta
+sen tulisi kasvaa lineaarisesti ytimien määrän mukaan. Testit on tehty
+800x800 solukolla, jota laskettiin 3000 sukupolvea Ukko
+klusterilla. Käytössä olevien ytimien määrää rajoitettiin taskset
+työkalulla. Ohjelmakoodia muokattiin ytimien määrän tunnistuksen osalta,
+sillä Javan runtime ei havaitse taskset työkalulla asetettua rajoitusta,
+ja kertoo käytössä olevan aina 16 ydintä. Normaalista poiketen ytimien
+määrä asetettiin siis testejä varten käsin.
+
+1 ydin    101 sekunttia
+2 ydintä  51 sekunttia
+4 ydintä  28 sekunttia
+8 ydintä  14 sekunttia
+16 ydintä 14 sekunttia
+
+Sama 800x800 solukko, 10000 sukupolvea
+
+4 ydintä  100 sekunttia
+8 ydintä  55 sekunttia
+16 ydintä 57 sekunttia
+
+Laskenta-aika todella puolittui ytimien määrän kaksinkertaistuessa,
+mutta vain tiettyyn rajaan asti. 8 ja 16 ytimen välille ei syntynyt
+kuitenkaan mitään eroa. TODO: miksi????
 
 Käyttöohjeet
 

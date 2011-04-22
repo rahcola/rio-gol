@@ -66,10 +66,16 @@ public class GameOfLife {
       another one to signal that the buffers are swapped and the
       calculations can continue.
     */
-    public void step(final int times) {
-        int cores = Runtime.getRuntime().availableProcessors();
+    public void step(final int times, int cores) {
+        if (cores == 0) {
+            cores = Runtime.getRuntime().availableProcessors();
+        }
         // atleast a row of cells per thread
         cores = Math.min(cores, this.size);
+        if (cores == 1) {
+            serialStep(times);
+            return;
+        }
         // for syncing when to swap buffers
         final CyclicBarrier swapBarrier = new CyclicBarrier(cores + 1);
         // for syncing that the buffers have been swapped

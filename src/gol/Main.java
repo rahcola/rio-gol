@@ -14,11 +14,11 @@ public class Main {
         GameOfLife verification = new GameOfLife(readBoard());
 
         long start = System.currentTimeMillis();
-        game.step(10);
+        game.step(10, 0);
         long stop = System.currentTimeMillis();
-        System.out.println(steps + " steps took " + (stop - start) / 1000 + " seconds");
+        System.out.println(10 + " steps took " + (stop - start) / 1000 + " seconds");
 
-        verification.step(10);
+        verification.serialStep(10);
         System.out.println("correct? " + game.equals(verification));
 
         /*
