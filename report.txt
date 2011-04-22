@@ -124,6 +124,28 @@ Sama 800x800 solukko, 10000 sukupolvea
 15 ydintä 52 sekunttia
 16 ydintä 55 sekunttia
 
+Kun laskettavana oli 3000 sukupolvea, laskenta aika puolittu aina 8
+ytimeen asti. 16 ytimeen siirryttäessä aikaa kuitenkin kului saman
+verran. 10000 sukupolven testissä laskenta-aika ei enää puolittunut edes
+siirryttäessä neljästä kahdeksaan ytimeen, ja 15 ytimen laskenta oli
+nopeampi kuin 16 ytimen. Laskettavien sukupolvien määrän lisääntyessä
+laskenta-aika näyttäisi vähenevä vain logaritmisesti ytimien määrään
+nähden. Tämä ja 10000 sukupolven testin heikompi tulos viittaisivat
+siihen, että synkronointiin kuluva aika on merkittävä, ja kasvaa
+nopeammin kuin lineaarisesti. 15 ytimen nopeampi tulos selittynee sillä,
+että yhdessä Ukon solmussa on 16 ydintä, ja näin laskentaa
+hallinnoivalle säikeelle ei jää omaa ydintä. Synkronoinnin raskaus
+edelleen korostaa tätä ongelmaa.
+
 Käyttöohjeet
 
+Ohjelman kääntäminen onnistuu ajamalla compile.sh skripti. Se luo
+kansion classes luokkatiedostoja varten. Ohjelman käynnistäminen on
+helpointa ajamalla start.sh skripti. Tämä ajaa nopeuskilpailun solukolle
+10000 sukupolven päivityksen. Ohjelma tulostaa päivitykseen kuluneen
+ajan, ja sen jälkeen tarkastaa sarjallisella laskennalla tuloksen
+oikeellisuuden ja tulostaa tarkistuksen tuloksen.
+
 Liitteet
+
+ohjelmakoodi, GameOfLife.java, Main.java, GUI.java
