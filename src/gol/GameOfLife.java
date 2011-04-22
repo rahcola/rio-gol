@@ -54,7 +54,8 @@ public class GameOfLife {
     }
 
     /*
-      Calculate the life _times_ generations forward.
+      Calculate the life _times_ generations forward using _cores_ threads.
+      _cores_ == 0 triggers automatic regonitioning of cores.
 
       For efficiency, generations should be calculated in batches so
       that threads are created only once. Give one thread atleast a row
