@@ -1,6 +1,9 @@
 package gol;
 
-import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.LinkedList;
 
 /*
   Double buffered approach with flat boolean arrays.
@@ -19,12 +22,14 @@ public class GameOfLife {
 
     private boolean[] current_gen;
     private boolean[] next_gen;
+    private ExecutorService pool;
     private int size;
 
     public GameOfLife(boolean[][] cells) {
         this.size = cells.length;
         this.current_gen = new boolean[size * size];
         this.next_gen = new boolean[size * size];
+        this.pool = Executors.newCachedThreadPool();
 
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
@@ -54,79 +59,30 @@ public class GameOfLife {
     }
 
     /*
-      Calculate the life _times_ generations forward using _cores_ threads.
-      _cores_ == 0 triggers automatic regonitioning of cores.
-
-      For efficiency, generations should be calculated in batches so
-      that threads are created only once. Give one thread atleast a row
-      of cells to update, as the update operation is rather fast and
-      threads are memory intensive.
-
-      Synchronize using two barries, one to signal that the new
-      generation is calculated and the buffers can be swapped, and
-      another one to signal that the buffers are swapped and the
-      calculations can continue.
+      Calculate the life _times_ generations forward.
     */
-    public void step(final int times, int cores) {
-        if (cores == 0) {
-            cores = Runtime.getRuntime().availableProcessors();
-        }
-        // atleast a row of cells per thread
-        cores = Math.min(cores, this.size);
-        if (cores == 1) {
-            serialStep(times);
-            return;
-        }
-        // for syncing when to swap buffers
-        final CyclicBarrier swapBarrier = new CyclicBarrier(cores + 1);
-        // for syncing that the buffers have been swapped
-        final CyclicBarrier swappedBarrier = new CyclicBarrier(cores + 1);
-
-        Thread[] threads = new Thread[cores];
-        final int rows_per_thread = this.size / cores;
-        
-        int row = 0;
-        for (int c = 0; c < cores; c++) {
-            final int from = row;
-            final int to = Math.min(row + rows_per_thread, this.size);
-            threads[c] = new Thread(new Runnable() {
-                    public void run() {
-                        for (int t = 0; t < times; t++) {
-                            for (int y = from; y < to; y++) {
-                                for (int x = 0; x < size; x++) {
-                                    next_gen[(y * size) + x] = newState(x, y);
-                                }
+    public void step() {
+        LinkedList<Future> futures = new LinkedList<Future>();
+        for (int y = 0; y < this.size; y++) {
+            for (int x = 0; x < this.size; x++) {
+                final int xx = x;
+                final int yy = y;
+                futures.add(this.pool.submit(new Runnable() {
+                            public void run() {
+                                next_gen[(yy * size) + xx] = newState(xx, yy);
                             }
-                            try {
-                                swapBarrier.await();
-                                swappedBarrier.await();
-                            } catch (Exception e) {
-                                System.out.println(e);
-                            }
-                        }
-                    }
-                });
-            threads[c].start();
-            row += rows_per_thread;
-        }
-        
-        for (int t = 0; t < times; t++) {
-            try {
-                swapBarrier.await();
-                swapBuffers();
-                swappedBarrier.await();
-            } catch (Exception e) {
-                System.out.println(e);
+                        }));
             }
         }
-
-        for (Thread t : threads) {
+        for (Future result : futures) {
             try {
-                t.join();
+                result.get();
             } catch (Exception e) {
                 System.out.println(e);
+                System.exit(1);
             }
         }
+        swapBuffers();
     }
 
     /*
