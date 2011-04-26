@@ -105,7 +105,13 @@ Ytimien määrän kaksinkertaistamisen tulisi puolittaa laskentaan kuluva
 aika. Synkronointiin kuluva aika toki lisääntyy säikeiden myötä, mutta
 sen tulisi kasvaa lineaarisesti ytimien määrän mukaan. Testit on tehty
 800x800 solukolla, jota laskettiin 3000 sukupolvea Ukko klusterin
-yhdellä solmulla. Ytimien määrän tunnistus koodissa tehdään käyttäen
+yhdellä solmulla. Solukko on nopeuskilpailun solukko, joka päällisin
+puolin vaikuttaa satunnaisgeneroidulta. Solukon alkuarvolla ei tulisi
+kuitenkaan olla väliä, sillä ohjelmassa ei ole tehty eliöiden
+tunnistukseen tai kuolleiden solujen poissulkemiseen perustuvia
+optimointeja.
+
+Ytimien määrän tunnistus koodissa tehdään käyttäen
 Javan Runtime luokan tietoja ajoympäristöstä. Koska prosessin käytössä
 olevien ytimien rajoittaminen tasket työkalulla ei näy Javan Runtime
 luokalle, täytyi käytössä olevien ytimien määrä antaa käsin.
@@ -139,12 +145,21 @@ edelleen korostaa tätä ongelmaa.
 
 Käyttöohjeet
 
+Ohjelma olettaa, että sitä ajetaan ympäristössä, jossa laitoksen
+tiedostopalvelin on mountattuna nimelle /fs-x . Ohjelma toimii
+esimerkiksi sellaisenaan Ukko klusterin solmuilla.
+
 Ohjelman kääntäminen onnistuu ajamalla compile.sh skripti. Se luo
 kansion classes luokkatiedostoja varten. Ohjelman käynnistäminen on
 helpointa ajamalla start.sh skripti. Tämä ajaa nopeuskilpailun solukolle
 10000 sukupolven päivityksen. Ohjelma tulostaa päivitykseen kuluneen
 ajan, ja sen jälkeen tarkastaa sarjallisella laskennalla tuloksen
 oikeellisuuden ja tulostaa tarkistuksen tuloksen.
+
+Esimerkki tulosteesta:
+
+10000 steps took 50 seconds
+correct? yes
 
 Liitteet
 
